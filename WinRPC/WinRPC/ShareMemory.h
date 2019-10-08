@@ -13,7 +13,7 @@ public:
 	int WriteShareMem(void* dest, void*src, unsigned size);					//写共享内存
 	int ReadShareMem(void* src, void*dest, unsigned size);					//读共享内存
 private:
-	bool CheckAddress(void* addr); //检查内存地址是否合法
+	bool CheckAddress(void* addr);	//检查内存地址是否合法
 private:
 	std::string m_shareMemName;		//共享内存的名字
 	bool m_isCreateFile;			//文件共享内存or内存页共享内存

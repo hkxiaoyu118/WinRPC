@@ -74,9 +74,12 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MemoryChannel.h" />
+    <ClInclude Include="MyCriticalSection.h" />
     <ClInclude Include="ShareMemory.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MemoryChannel.cpp" />
     <ClCompile Include="ShareMemory.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

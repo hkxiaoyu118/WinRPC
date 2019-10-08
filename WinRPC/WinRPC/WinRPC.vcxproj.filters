@@ -21,9 +21,18 @@
     <ClInclude Include="ShareMemory.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryChannel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MyCriticalSection.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ShareMemory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryChannel.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
