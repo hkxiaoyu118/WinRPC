@@ -9,9 +9,9 @@ public:
 	ShareMemory(const std::string shareMemName, bool createFile = false);
 	~ShareMemory();
 
-	void* OpenShareMem(void* addr, const unsigned length, DWORD protect);	//打开共享内存
-	int WriteShareMem(void* dest, void*src, unsigned size);					//写共享内存
-	int ReadShareMem(void* src, void*dest, unsigned size);					//读共享内存
+	void* OpenShareMem(void* addr, const unsigned length);	//打开共享内存
+	int WriteShareMem(void* dest, void*src, unsigned size);	//写共享内存
+	int ReadShareMem(void* src, void*dest, unsigned size);	//读共享内存
 private:
 	bool CheckAddress(void* addr);	//检查内存地址是否合法
 private:

@@ -21,16 +21,16 @@ MemoryChannel::~MemoryChannel()
 CHANNEL_ERROR MemoryChannel::InitChannel()
 {
 	CHANNEL_ERROR errorCode = CHANNEL_ERROR::NOT_ERROR;
-	m_shareMemoryClient = new ShareMemory("SHARE_CF113892-23F7-4B4D-844D-5D4820BAEC97_" + m_channelName + "_client");
-	m_shareMemoryServer = new ShareMemory("SHARE_CF113892-23F7-4B4D-844D-5D4820BAEC97_" + m_channelName + "_server");
+	m_shareMemoryClient = new ShareMemory("Global\\SHARE_" + m_channelName + "_client");
+	m_shareMemoryServer = new ShareMemory("Global\\SHARE_" + m_channelName + "_server");
 	if (m_shareMemoryClient != NULL && m_shareMemoryServer != NULL)
 	{
-		m_shareMemoryClientAddr = m_shareMemoryClient->OpenShareMem(NULL, m_shareMemorySize, FILE_MAP_ALL_ACCESS);
-		m_shareMemoryServerAddr = m_shareMemoryServer->OpenShareMem(NULL, m_shareMemorySize, FILE_MAP_ALL_ACCESS);
+		m_shareMemoryClientAddr = m_shareMemoryClient->OpenShareMem(NULL, m_shareMemorySize);
+		m_shareMemoryServerAddr = m_shareMemoryServer->OpenShareMem(NULL, m_shareMemorySize);
 		if (m_shareMemoryClientAddr != NULL && m_shareMemoryServerAddr != NULL)
 		{
-			std::string clientReadEventName = "EVENT_CF113892-23F7-4B4D-844D-5D4820BAEC97_" + m_channelName + "_client";
-			std::string serverReadEventName = "EVENT_CF113892-23F7-4B4D-844D-5D4820BAEC97_" + m_channelName + "_server";
+			std::string clientReadEventName = "EVENT_" + m_channelName + "_client";
+			std::string serverReadEventName = "EVENT_" + m_channelName + "_server";
 
 			//事件都设置为手动恢复
 			m_eventClientRead = CreateEventA(NULL, TRUE, FALSE, clientReadEventName.c_str());
@@ -39,8 +39,8 @@ CHANNEL_ERROR MemoryChannel::InitChannel()
 			if (m_eventClientRead != NULL && m_eventServerRead != NULL)
 			{
 				//创建消息收发线程
-				_beginthread(SendDataThread, 0, NULL);
-				_beginthread(ReceiveDataThread, 0, NULL);
+				_beginthread(SendDataThread, 0, this);
+				_beginthread(ReceiveDataThread, 0, this);
 				errorCode = CHANNEL_ERROR::NOT_ERROR;
 			}
 			else
@@ -185,6 +185,7 @@ void MemoryChannel::ReceiveDataThread(LPVOID args)
 			receiveData.resize(p->m_shareMemorySize);
 			pShareMem->ReadShareMem(pShareMemAddr, (void*)receiveData.c_str(), p->m_shareMemorySize);
 			p->StoreReceiveData(receiveData);
+			std::cout << receiveData << std::endl;
 			ResetEvent(hEventRead);//数据存储已经完成,通知写入端可以写入了
 		}
 	}

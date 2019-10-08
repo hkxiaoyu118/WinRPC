@@ -13,9 +13,20 @@ ShareMemory::ShareMemory(const std::string shareMemName, bool createFile)
 
 ShareMemory::~ShareMemory()
 {
-	UnmapViewOfFile(m_shareMemAddress);
-	CloseHandle(m_semaphore);
-	CloseHandle(m_fileMapping);
+	if (m_shareMemAddress != NULL)
+	{
+		UnmapViewOfFile(m_shareMemAddress);
+	}
+	
+	if (m_semaphore != NULL)
+	{
+		CloseHandle(m_semaphore);
+	}
+	
+	if (m_fileMapping != NULL)
+	{
+		CloseHandle(m_fileMapping);
+	}
 }
 
 /*
@@ -23,7 +34,7 @@ ShareMemory::~ShareMemory()
 	文件的名称由参数shareMemName给定.如果用页文件映射,则不会在磁盘上建立一个文件
 	默认使用内存页文件映射
 */
-void* ShareMemory::OpenShareMem(void* addr, const unsigned length, DWORD protect)
+void* ShareMemory::OpenShareMem(void* addr, const unsigned length)
 {
 	m_shareMemSize = length;
 	HANDLE fileHandle = INVALID_HANDLE_VALUE;
@@ -45,7 +56,7 @@ void* ShareMemory::OpenShareMem(void* addr, const unsigned length, DWORD protect
 	{
 		//首先尝试打开对应名称的共享内存
 		//如果打开失败则说明没有该名称的共享内存,然后重新创建一个
-		m_fileMapping = OpenFileMappingA(PAGE_READWRITE, false, m_shareMemName.c_str());
+		m_fileMapping = OpenFileMappingA(FILE_MAP_WRITE | FILE_MAP_READ, false, m_shareMemName.c_str());
 		if (m_fileMapping != NULL)
 		{
 			break;
@@ -56,7 +67,7 @@ void* ShareMemory::OpenShareMem(void* addr, const unsigned length, DWORD protect
 			return NULL;
 		}
 	} while (0);
-	m_shareMemAddress = MapViewOfFileEx(m_fileMapping, protect, 0, 0, length, addr);
+	m_shareMemAddress = MapViewOfFileEx(m_fileMapping, FILE_MAP_ALL_ACCESS, 0, 0, length, addr);
 	CloseHandle(fileHandle);
 	return m_shareMemAddress;
 }

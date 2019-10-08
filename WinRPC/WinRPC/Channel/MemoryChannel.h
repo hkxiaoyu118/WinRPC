@@ -21,7 +21,7 @@ enum CHANNEL_ERROR
 class MemoryChannel
 {
 public:
-	MemoryChannel(const std::string channelName, bool isServer = false, DWORD shareMemorySize = 1024 * 10, unsigned sendMaxSize = 100, unsigned receiveMaxSize = 100);
+	MemoryChannel(const std::string channelName, bool isServer = false, DWORD shareMemorySize = 1024 * 12, unsigned sendMaxSize = 100, unsigned receiveMaxSize = 100);
 	~MemoryChannel();
 	CHANNEL_ERROR InitChannel();
 	void StoreSendData(std::string data);
