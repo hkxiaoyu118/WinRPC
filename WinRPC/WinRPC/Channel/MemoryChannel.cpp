@@ -185,7 +185,8 @@ void MemoryChannel::ReceiveDataThread(LPVOID args)
 			receiveData.resize(p->m_shareMemorySize);
 			pShareMem->ReadShareMem(pShareMemAddr, (void*)receiveData.c_str(), p->m_shareMemorySize);
 			p->StoreReceiveData(receiveData);
-			std::cout << receiveData << std::endl;
+			//std::cout << receiveData << std::endl;
+			printf("%s\n", receiveData.c_str());
 			ResetEvent(hEventRead);//数据存储已经完成,通知写入端可以写入了
 		}
 	}
