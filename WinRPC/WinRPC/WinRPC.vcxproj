@@ -74,13 +74,15 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MemoryChannel.h" />
-    <ClInclude Include="MyCriticalSection.h" />
-    <ClInclude Include="ShareMemory.h" />
+    <ClInclude Include="Channel\MemoryChannel.h" />
+    <ClInclude Include="Common\MyCriticalSection.h" />
+    <ClInclude Include="Common\ShareMemory.h" />
+    <ClInclude Include="Manager\ChannelManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MemoryChannel.cpp" />
-    <ClCompile Include="ShareMemory.cpp" />
+    <ClCompile Include="Channel\MemoryChannel.cpp" />
+    <ClCompile Include="Common\ShareMemory.cpp" />
+    <ClCompile Include="Manager\ChannelManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

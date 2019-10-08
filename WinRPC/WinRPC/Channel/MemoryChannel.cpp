@@ -10,9 +10,6 @@ MemoryChannel::MemoryChannel(const std::string channelName, bool isServer, DWORD
 	m_receiveMaxSize = receiveMaxSize;
 	InitializeCriticalSection(&m_dataCs);
 	InitializeCriticalSection(&m_sendCs);
-
-	_beginthread(SendDataThread, 0, NULL);
-	_beginthread(ReceiveDataThread, 0, NULL);
 }
 
 MemoryChannel::~MemoryChannel()
@@ -41,6 +38,9 @@ CHANNEL_ERROR MemoryChannel::InitChannel()
 
 			if (m_eventClientRead != NULL && m_eventServerRead != NULL)
 			{
+				//创建消息收发线程
+				_beginthread(SendDataThread, 0, NULL);
+				_beginthread(ReceiveDataThread, 0, NULL);
 				errorCode = CHANNEL_ERROR::NOT_ERROR;
 			}
 			else
@@ -102,7 +102,7 @@ void MemoryChannel::StoreReceiveData(std::string data)
 	}
 }
 
-bool MemoryChannel::ReceiveData(std::queue<std::string>& dataSet)
+bool MemoryChannel::GetReceiveData(std::queue<std::string>& dataSet)
 {
 	ubase::MyCriticalSection cs(&m_dataCs);
 	bool result = false;

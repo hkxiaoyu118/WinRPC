@@ -3,8 +3,8 @@
 #include <vector>
 #include <queue>
 #include <windows.h>
-#include "ShareMemory.h"
-#include "MyCriticalSection.h"
+#include "../Common/ShareMemory.h"
+#include "../Common/MyCriticalSection.h"
 
 /*
 	ÄÚ´æchannel
@@ -27,7 +27,7 @@ public:
 	void StoreSendData(std::string data);
 	bool GetSendData(std::string& data);
 	void StoreReceiveData(std::string data); 
-	bool ReceiveData(std::queue<std::string>& dataSet);
+	bool GetReceiveData(std::queue<std::string>& dataSet);
 	static void SendDataThread(LPVOID args);
 	static void ReceiveDataThread(LPVOID args);
 
