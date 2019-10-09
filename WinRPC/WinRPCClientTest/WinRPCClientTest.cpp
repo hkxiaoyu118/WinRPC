@@ -25,6 +25,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		count++;
 		Sleep(20);
 	}
+
+//	manager.DelChannelItem(channelName);
 	system("pause");
 	return 0;
 }

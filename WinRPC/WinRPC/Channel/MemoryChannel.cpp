@@ -3,6 +3,8 @@
 
 MemoryChannel::MemoryChannel(const std::string channelName, bool isServer, DWORD shareMemorySize, unsigned sendMaxSize, unsigned receiveMaxSize)
 {
+	m_hSendThread = NULL;
+	m_hReceiveThread = NULL;
 	m_channelName = channelName;
 	m_shareMemorySize = shareMemorySize;
 	m_isServer = isServer;
@@ -14,6 +16,16 @@ MemoryChannel::MemoryChannel(const std::string channelName, bool isServer, DWORD
 
 MemoryChannel::~MemoryChannel()
 {
+	//先停止收发工作线程
+	m_threadWorking = false;
+	HANDLE hHandles[2] = { m_hSendThread, m_hReceiveThread };
+	WaitForMultipleObjects(2, hHandles, TRUE, INFINITE);
+	CloseHandle(m_hSendThread);
+	CloseHandle(m_hReceiveThread);
+	delete m_shareMemoryClient;
+	delete m_shareMemoryServer;
+	CloseHandle(m_eventClientRead);
+	CloseHandle(m_eventServerRead);
 	DeleteCriticalSection(&m_dataCs);
 	DeleteCriticalSection(&m_sendCs);
 }
@@ -39,8 +51,9 @@ CHANNEL_ERROR MemoryChannel::InitChannel()
 			if (m_eventClientRead != NULL && m_eventServerRead != NULL)
 			{
 				//创建消息收发线程
-				_beginthread(SendDataThread, 0, this);
-				_beginthread(ReceiveDataThread, 0, this);
+				m_threadWorking = true;
+				m_hSendThread = (HANDLE)_beginthreadex(NULL, 0, SendDataThread, (LPVOID)this, 0, NULL);
+				m_hReceiveThread = (HANDLE)_beginthreadex(NULL, 0, ReceiveDataThread, (LPVOID)this, 0, NULL);
 				errorCode = CHANNEL_ERROR::NOT_ERROR;
 			}
 			else
@@ -118,7 +131,7 @@ bool MemoryChannel::GetReceiveData(std::queue<std::string>& dataSet)
 	return result;
 }
 
-void MemoryChannel::SendDataThread(LPVOID args)
+unsigned  __stdcall MemoryChannel::SendDataThread(LPVOID args)
 {
 	MemoryChannel *p = (MemoryChannel*)args;
 	HANDLE hEventRead = NULL;
@@ -155,10 +168,18 @@ void MemoryChannel::SendDataThread(LPVOID args)
 		{
 			Sleep(10);
 		}
+
+		//如果发现线程需要停止,则退出循环体,停止线程
+		if (p->m_threadWorking == false)
+		{
+			break;
+		}
 	}
+
+	return 0;
 }
 
-void MemoryChannel::ReceiveDataThread(LPVOID args)
+unsigned  __stdcall MemoryChannel::ReceiveDataThread(LPVOID args)
 {
 	MemoryChannel *p = (MemoryChannel*)args;
 	HANDLE hEventRead = NULL;
@@ -179,7 +200,7 @@ void MemoryChannel::ReceiveDataThread(LPVOID args)
 
 	while (true)
 	{
-		if (WaitForSingleObject(hEventRead, INFINITE) == WAIT_OBJECT_0)
+		if (WaitForSingleObject(hEventRead, 500) == WAIT_OBJECT_0)
 		{
 			std::string receiveData;
 			receiveData.resize(p->m_shareMemorySize);
@@ -189,5 +210,13 @@ void MemoryChannel::ReceiveDataThread(LPVOID args)
 			printf("%s\n", receiveData.c_str());
 			ResetEvent(hEventRead);//数据存储已经完成,通知写入端可以写入了
 		}
+
+		//如果发现线程需要停止,则退出循环体,停止线程
+		if (p->m_threadWorking == false)
+		{
+			break;
+		}
 	}
+
+	return 0;
 }

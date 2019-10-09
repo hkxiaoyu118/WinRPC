@@ -28,8 +28,8 @@ public:
 	bool GetSendData(std::string& data);
 	void StoreReceiveData(std::string data); 
 	bool GetReceiveData(std::queue<std::string>& dataSet);
-	static void SendDataThread(LPVOID args);
-	static void ReceiveDataThread(LPVOID args);
+	static unsigned  __stdcall SendDataThread(LPVOID args);
+	static unsigned  __stdcall ReceiveDataThread(LPVOID args);
 
 
 private:
@@ -51,4 +51,8 @@ private:
 
 	unsigned m_sendMaxSize;
 	unsigned m_receiveMaxSize;
+
+	bool m_threadWorking;				//判断线程是否工作
+	HANDLE m_hSendThread;				//发消息线程句柄
+	HANDLE m_hReceiveThread;			//收消息线程句柄
 };
