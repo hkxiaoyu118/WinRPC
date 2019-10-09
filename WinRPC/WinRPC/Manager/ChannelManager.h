@@ -12,7 +12,7 @@ public:
 	bool AddChannel(
 		const std::string channelName,		//通道名称
 		bool isServer = false,				//是否是服务端,默认是客户端
-		DWORD shareMemorySize = 1024 * 4,  //共享内存的大小,默认是4K
+		DWORD shareMemorySize = 1024 * 4,   //共享内存的大小,默认是4K
 		unsigned sendMaxSize = 100,			//发送数据的最大存储条数,默认是100条
 		unsigned receiveMaxSize = 100		//接收数据的最大存储条数,默认是100条
 		);//添加通道
