@@ -71,7 +71,7 @@ bool ChannelManager::SendData(const std::string channelName, std::string data)
 	return false;
 }
 
-bool ChannelManager::GetData(const std::string channelName, std::queue<std::string>& data)
+bool ChannelManager::GetReceiveData(const std::string channelName, std::vector<std::string>& data)
 {
 	ubase::MyCriticalSection cs(&m_channelMapsCS);
 	bool result = false;

@@ -115,18 +115,22 @@ void MemoryChannel::StoreReceiveData(std::string data)
 	}
 }
 
-bool MemoryChannel::GetReceiveData(std::queue<std::string>& dataSet)
+bool MemoryChannel::GetReceiveData(std::vector<std::string>& dataSet)
 {
 	ubase::MyCriticalSection cs(&m_dataCs);
 	bool result = false;
 	if (m_receiveDatas.size() != 0)
 	{
-		dataSet = m_receiveDatas;
 		while (m_receiveDatas.empty() == false)
 		{
+			dataSet.push_back(m_receiveDatas.front());
 			m_receiveDatas.pop();
 		}
-		result = true;
+
+		if (dataSet.size() != 0)
+		{
+			result = true;
+		}
 	}
 	return result;
 }
@@ -206,8 +210,9 @@ unsigned  __stdcall MemoryChannel::ReceiveDataThread(LPVOID args)
 			receiveData.resize(p->m_shareMemorySize);
 			pShareMem->ReadShareMem(pShareMemAddr, (void*)receiveData.c_str(), p->m_shareMemorySize);
 			p->StoreReceiveData(receiveData);
-			//std::cout << receiveData << std::endl;
+#ifdef _DEBUG
 			printf("%s\n", receiveData.c_str());
+#endif // _DEBUG
 			ResetEvent(hEventRead);//数据存储已经完成,通知写入端可以写入了
 		}
 

@@ -2,7 +2,7 @@
 #include <map>
 #include <queue>
 #include <string>
-#include "../Channel/MemoryChannel.h"
+#include "MemoryChannel.h"
 
 class ChannelManager
 {
@@ -21,7 +21,7 @@ public:
 	void AddChannelItem(const std::string channelName, MemoryChannel* pChannel);//向map中添加通道
 	void DelChannelItem(const std::string channelName);//从map删除通道
 	bool SendData(const std::string channelName, std::string data);//向指定的通道发送数据
-	bool GetData(const std::string channelName, std::queue<std::string>& data);//从指定的通道中取数据(所有)
+	bool GetReceiveData(const std::string channelName, std::vector<std::string>& data);//从指定的通道中取数据(所有)
 private:
 	std::map<std::string, MemoryChannel*> m_channelMaps;
 	CRITICAL_SECTION m_channelMapsCS;

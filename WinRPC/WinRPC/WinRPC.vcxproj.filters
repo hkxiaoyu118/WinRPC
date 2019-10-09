@@ -18,6 +18,12 @@
     <Filter Include="Manager">
       <UniqueIdentifier>{5ab7be3c-e05e-437a-9e58-b687fd87c901}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Route">
+      <UniqueIdentifier>{af25cada-5df5-4ba3-b55f-033b08237e05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="JsonCpp">
+      <UniqueIdentifier>{4d7ac6a6-e8bb-48d0-b15d-63e2a8d4ff26}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -32,8 +38,17 @@
     <ClInclude Include="Channel\MemoryChannel.h">
       <Filter>Channel</Filter>
     </ClInclude>
-    <ClInclude Include="Manager\ChannelManager.h">
-      <Filter>Manager</Filter>
+    <ClInclude Include="Route\MemoryRoute.h">
+      <Filter>Route</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonCpp\lib_json\json_tool.h">
+      <Filter>JsonCpp</Filter>
+    </ClInclude>
+    <ClInclude Include="Route\RouteServer.h">
+      <Filter>Route</Filter>
+    </ClInclude>
+    <ClInclude Include="Channel\ChannelManager.h">
+      <Filter>Channel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -43,8 +58,31 @@
     <ClCompile Include="Channel\MemoryChannel.cpp">
       <Filter>Channel</Filter>
     </ClCompile>
-    <ClCompile Include="Manager\ChannelManager.cpp">
-      <Filter>Manager</Filter>
+    <ClCompile Include="Route\MemoryRoute.cpp">
+      <Filter>Route</Filter>
     </ClCompile>
+    <ClCompile Include="JsonCpp\lib_json\json_reader.cpp">
+      <Filter>JsonCpp</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonCpp\lib_json\json_value.cpp">
+      <Filter>JsonCpp</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonCpp\lib_json\json_writer.cpp">
+      <Filter>JsonCpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Route\RouteServer.cpp">
+      <Filter>Route</Filter>
+    </ClCompile>
+    <ClCompile Include="Channel\ChannelManager.cpp">
+      <Filter>Channel</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="JsonCpp\lib_json\json_valueiterator.inl">
+      <Filter>JsonCpp</Filter>
+    </None>
+    <None Include="JsonCpp\lib_json\version.h.in">
+      <Filter>JsonCpp</Filter>
+    </None>
   </ItemGroup>
 </Project>

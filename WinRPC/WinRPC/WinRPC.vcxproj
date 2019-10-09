@@ -48,6 +48,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>.\JsonCpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -64,6 +65,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>.\JsonCpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -76,15 +78,27 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Channel\ChannelManager.h" />
     <ClInclude Include="Channel\MemoryChannel.h" />
     <ClInclude Include="Common\MyCriticalSection.h" />
     <ClInclude Include="Common\ShareMemory.h" />
-    <ClInclude Include="Manager\ChannelManager.h" />
+    <ClInclude Include="JsonCpp\lib_json\json_tool.h" />
+    <ClInclude Include="Route\MemoryRoute.h" />
+    <ClInclude Include="Route\RouteServer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Channel\ChannelManager.cpp" />
     <ClCompile Include="Channel\MemoryChannel.cpp" />
     <ClCompile Include="Common\ShareMemory.cpp" />
-    <ClCompile Include="Manager\ChannelManager.cpp" />
+    <ClCompile Include="JsonCpp\lib_json\json_reader.cpp" />
+    <ClCompile Include="JsonCpp\lib_json\json_value.cpp" />
+    <ClCompile Include="JsonCpp\lib_json\json_writer.cpp" />
+    <ClCompile Include="Route\MemoryRoute.cpp" />
+    <ClCompile Include="Route\RouteServer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="JsonCpp\lib_json\json_valueiterator.inl" />
+    <None Include="JsonCpp\lib_json\version.h.in" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

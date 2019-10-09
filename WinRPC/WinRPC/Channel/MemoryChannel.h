@@ -27,7 +27,7 @@ public:
 	void StoreSendData(std::string data);
 	bool GetSendData(std::string& data);
 	void StoreReceiveData(std::string data); 
-	bool GetReceiveData(std::queue<std::string>& dataSet);
+	bool GetReceiveData(std::vector<std::string>& dataSet);
 	static unsigned  __stdcall SendDataThread(LPVOID args);
 	static unsigned  __stdcall ReceiveDataThread(LPVOID args);
 
