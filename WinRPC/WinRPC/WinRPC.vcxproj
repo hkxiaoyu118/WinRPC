@@ -83,7 +83,6 @@
     <ClInclude Include="Common\MyCriticalSection.h" />
     <ClInclude Include="Common\ShareMemory.h" />
     <ClInclude Include="JsonCpp\lib_json\json_tool.h" />
-    <ClInclude Include="Route\MemoryRoute.h" />
     <ClInclude Include="Route\RouteServer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -93,7 +92,6 @@
     <ClCompile Include="JsonCpp\lib_json\json_reader.cpp" />
     <ClCompile Include="JsonCpp\lib_json\json_value.cpp" />
     <ClCompile Include="JsonCpp\lib_json\json_writer.cpp" />
-    <ClCompile Include="Route\MemoryRoute.cpp" />
     <ClCompile Include="Route\RouteServer.cpp" />
   </ItemGroup>
   <ItemGroup>

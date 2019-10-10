@@ -8,40 +8,43 @@ RouteServer::RouteServer()
 
 RouteServer::~RouteServer()
 {
-	if (m_hRouteUpdateNoticeEvent != NULL)
+	if (m_hServerNoticeEvent != NULL)
 	{
-		CloseHandle(m_hRouteUpdateNoticeEvent);
+		CloseHandle(m_hServerNoticeEvent);
 	}
 
-	if (m_hRouteMutex != NULL)
+	if (m_hServerMutex != NULL)
 	{
-		CloseHandle(m_hRouteMutex);
+		CloseHandle(m_hServerMutex);
 	}
 
-	if (m_routeUpdateMem != NULL)
+	if (m_serverTableMem != NULL)
 	{
-		delete m_routeUpdateMem;
+		delete m_serverTableMem;
 	}
 }
 
 bool RouteServer::InitRouteManager()
 {
 	bool result = false;
-	std::string routeEventName = "ROUTE_SHARE_NOTICE_" + m_routeManagerName + "_WINRPC";
-	m_hRouteUpdateNoticeEvent = CreateEventA(NULL, FALSE, FALSE, routeEventName.c_str());
-	std::string routeMutexName = "ROUTE_SHARE_MUTEX_" + m_routeManagerName + "_WINRPC";
-	m_hRouteMutex = CreateMutexA(NULL, TRUE, routeMutexName.c_str());
-	std::string routeUpdateMemName = "Global\\ROUTE_SHARE_" + m_routeManagerName + "_WINRPC";
-	m_routeUpdateMem = new ShareMemory(routeUpdateMemName);
-	if (m_routeUpdateMem != NULL)
+
+	//Server相关的初始化
+	std::string routeServerNoticeEventName = "ROUTE_SERVER_NOTICE_" + m_routeManagerName + "_WINRPC";
+	m_hServerNoticeEvent = CreateEventA(NULL, FALSE, FALSE, routeServerNoticeEventName.c_str());
+	std::string routeServerMutexName = "ROUTE_SERVER_MUTEX_" + m_routeManagerName + "_WINRPC";
+	m_hServerMutex = CreateMutexA(NULL, TRUE, routeServerMutexName.c_str());
+	std::string routeServerMemName = "Global\\ROUTE_SERVER_SHARE_" + m_routeManagerName + "_WINRPC";
+	m_serverTableMem = new ShareMemory(routeServerMemName);
+
+	if (m_serverTableMem != NULL)
 	{
-		m_routeUpdateMemAddr = m_routeUpdateMem->OpenShareMem(NULL, 4096);
-		if (m_routeUpdateMemAddr != NULL)
+		m_serverMemAddr = m_serverTableMem->OpenShareMem(NULL, 4096);
+		if (m_serverMemAddr != NULL)
 		{
-			result = AddRoute(m_routeName);
-			if (result == true)//如果更新路由表成功,通知其它的功能模块,也及时更新路由表
+			result = AddServerRoute(m_serverName);
+			if (result == true)//如果更新服务器表成功,通知所有客户端,也及时更新服务器表
 			{
-				SetEvent(m_hRouteUpdateNoticeEvent);
+				SetEvent(m_hServerNoticeEvent);
 			}
 		}
 	}
@@ -49,120 +52,115 @@ bool RouteServer::InitRouteManager()
 }
 
 /*
-	共享内存中的路由信息结构:
+	共享内存中的服务器信息结构:
 	{
-		routes:[
-			{"route_name":"hkxiaoyu118", "pid":2462},
-			{"route_name":"zhoujielun", "pid":32452}
+		servers:[
+			{"server_name":"hkxiaoyu118", "pid":2462},
+			{"server_name":"zhoujielun", "pid":32452}
 		]
 	}
-	route_name:路由名称
-	pid:路由对应的进程ID
+	server_name:服务器名称
+	pid:服务器对应的进程ID
 */
-bool RouteServer::AddRoute(std::string routeName)
+bool RouteServer::AddServerRoute(std::string serverName)
 {
 	bool result = false;
-	if (WaitForSingleObject(m_hRouteMutex, INFINITE) == WAIT_OBJECT_0)
+	if (WaitForSingleObject(m_hServerMutex, INFINITE) == WAIT_OBJECT_0)
 	{
-		std::string oldRouteData;	//旧的路由信息
-		std::string newRouteData;	//新的路由信息
+		std::string oldRouteData;	//旧的服务器信息
+		std::string newRouteData;	//新的服务器信息
 		oldRouteData.resize(4096);
-		m_routeUpdateMem->ReadShareMem(m_routeUpdateMemAddr, (void*)oldRouteData.c_str(), 4096);
-		if (oldRouteData.empty() == false)//如果存储路由信息的共享内存中有数据,则先读取原有的数据
+		m_serverTableMem->ReadShareMem(m_serverMemAddr, (void*)oldRouteData.c_str(), 4096);
+		if (oldRouteData.empty() == false)//如果存储服务器信息的共享内存中有数据,则先读取原有的数据
 		{
 			Json::Value rootValue;
 			Json::Reader reader;
 			if (reader.parse(oldRouteData, rootValue) == true)
 			{
-				if (rootValue["routes"].isArray())
+				if (rootValue["servers"].isArray())
 				{
 					Json::Value routeValue;
 					Json::FastWriter writer;
-					routeValue["route_name"] = routeName;
+					routeValue["server_name"] = serverName;
 					routeValue["pid"] = (unsigned)GetCurrentProcessId();
-					rootValue["routes"].append(routeValue);
+					rootValue["servers"].append(routeValue);
 					newRouteData = writer.write(rootValue);
 				}
 			}
 		}
-		else//如果存储路由信息的共享内存中没有数据,则直接填写数据
+		else//如果存储服务器信息的共享内存中没有数据,则直接填写数据
 		{
 			Json::Value rootValue;
 			Json::Value routeValue;
 			Json::FastWriter writer;
-			routeValue["route_name"] = routeName;
+			routeValue["server_name"] = serverName;
 			routeValue["pid"] = (unsigned)GetCurrentProcessId();
-			rootValue["routes"].append(routeValue);
+			rootValue["servers"].append(routeValue);
 			newRouteData = writer.write(rootValue);
 		}
 
 		if (newRouteData.empty() == false)
 		{
-			m_routeUpdateMem->WriteShareMem(m_routeUpdateMemAddr, (void*)newRouteData.c_str(), 4096);
+			m_serverTableMem->WriteShareMem(m_serverMemAddr, (void*)newRouteData.c_str(), 4096);
 			result = true;
 		}
 		
-		ReleaseMutex(m_hRouteMutex);
+		ReleaseMutex(m_hServerMutex);
 	}
 	return result;
 }
 
-bool RouteServer::DelRoute(std::string routeName)
+bool RouteServer::DelRoute(std::string serverName)
 {
 	bool result = false;
 	return result;
 }
 
-bool RouteServer::UpdateLocalRouteTable()
+bool RouteServer::SendData(std::string clientName, std::string data)
+{
+	m_sendDatasMutex.lock();
+	MsgNode msg;
+	msg.clientName = clientName;
+	msg.data = data;
+	m_sendDatas.push(msg);
+	m_sendDatasMutex.unlock();
+	return true;
+}
+
+bool RouteServer::GetSendData(MsgNode& data)
 {
 	bool result = false;
-	if (WaitForSingleObject(m_hRouteMutex, INFINITE) == WAIT_OBJECT_0)
+	m_sendDatasMutex.lock();
+	if (m_sendDatas.size() != 0)
 	{
-		std::string routeData;
-		routeData.resize(4096);
-		m_routeUpdateMem->ReadShareMem(m_routeUpdateMemAddr, (void*)routeData.c_str(), 4096);
-		if (routeData.empty() == false)
-		{
-			Json::Value rootValue;
-			Json::Reader reader;
-			if (reader.parse(routeData, rootValue) == true)
-			{
-				if (rootValue["routes"].isArray())
-				{
-					std::map<std::string, RouteNode> newRouteMap;
-					for (int i = 0; i < rootValue["routes"].size(); i++)
-					{
-						RouteNode node;
-						Json::Value routeValue = rootValue["routes"][i];
-						node.routeName = routeValue["route_name"].asString();
-						node.pid = routeValue["pid"].asUInt();
-						newRouteMap[node.routeName] = node;
-					}
-
-					//直接替换掉原有的routemap
-					m_routeMapsMutex.lock();
-					m_routeMaps = newRouteMap;
-					m_routeMapsMutex.unlock();
-
-					result = true;
-				}
-			}
-		}
+		data = m_sendDatas.front();
+		m_sendDatas.pop();
+		result = true;
 	}
+	m_sendDatasMutex.unlock();
 	return result;
 }
 
-unsigned __stdcall RouteServer::MonitorRouteTableUpdateThread(LPVOID args)
+bool RouteServer::StoreReceivedData(std::string clientName, std::string data)
 {
-	RouteServer* p = (RouteServer*)args;
+	MsgNode msg;
+	msg.clientName = clientName;
+	msg.data = data;
+	m_receiveDatasMutex.lock();
+	m_receiveDatas.push(msg);
+	m_receiveDatasMutex.unlock();
+	return true;
+}
 
-	while (true)
+bool RouteServer::GetReceivedData(std::vector<MsgNode>& data)
+{
+	bool result = false;
+	m_receiveDatasMutex.lock();
+	while (m_receiveDatas.empty() == false)
 	{
-		if (WaitForSingleObject(p->m_hRouteUpdateNoticeEvent, INFINITE) == WAIT_OBJECT_0)//收到更新路由表的通知
-		{
-			//更新路由表
-			p->UpdateLocalRouteTable();
-		}
+		data.push_back(m_receiveDatas.front());
+		m_receiveDatas.pop();
 	}
-	return 0;
+	m_receiveDatasMutex.unlock();
+	return result;
 }

@@ -38,9 +38,6 @@
     <ClInclude Include="Channel\MemoryChannel.h">
       <Filter>Channel</Filter>
     </ClInclude>
-    <ClInclude Include="Route\MemoryRoute.h">
-      <Filter>Route</Filter>
-    </ClInclude>
     <ClInclude Include="JsonCpp\lib_json\json_tool.h">
       <Filter>JsonCpp</Filter>
     </ClInclude>
@@ -57,9 +54,6 @@
     </ClCompile>
     <ClCompile Include="Channel\MemoryChannel.cpp">
       <Filter>Channel</Filter>
-    </ClCompile>
-    <ClCompile Include="Route\MemoryRoute.cpp">
-      <Filter>Route</Filter>
     </ClCompile>
     <ClCompile Include="JsonCpp\lib_json\json_reader.cpp">
       <Filter>JsonCpp</Filter>
