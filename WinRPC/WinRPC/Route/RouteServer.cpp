@@ -124,7 +124,7 @@ bool RouteServer::SendData(std::string clientName, std::string data)
 {
 	m_sendDatasMutex.lock();
 	MsgNode msg;
-	msg.clientName = clientName;
+	msg.clientOrServerName = clientName;
 	msg.data = data;
 	m_sendDatas.push(msg);
 	m_sendDatasMutex.unlock();
@@ -148,7 +148,7 @@ bool RouteServer::GetSendData(MsgNode& data)
 bool RouteServer::StoreReceivedData(std::string clientName, std::string data)
 {
 	MsgNode msg;
-	msg.clientName = clientName;
+	msg.clientOrServerName = clientName;
 	msg.data = data;
 	m_receiveDatasMutex.lock();
 	m_receiveDatas.push(msg);
@@ -187,6 +187,7 @@ bool RouteServer::AddClient(std::string clientName)
 	}
 	return result;
 }
+
 bool RouteServer::DelClient(std::string clientName)
 {
 	bool result = false;

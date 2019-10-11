@@ -1,25 +1,13 @@
 #pragma once
 #include "../Common/ShareMemory.h"
 #include "../Channel/MemoryChannel.h"
+#include "../Common/Utility.h"
 #include <string>
 #include <map>
 #include <mutex>
 #include <queue>
 #include <vector>
 #include <windows.h>
-
-//服务端的详细信息
-struct ClientNode
-{
-	std::string clientName;	//客户端的名称
-	DWORD pid;				//客户端所在进程的PID
-};
-
-struct MsgNode
-{
-	std::string clientName;	//客户端的名称
-	std::string data;		//数据的内容
-};
 
 class RouteServer
 {

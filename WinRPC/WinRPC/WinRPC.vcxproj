@@ -84,6 +84,7 @@
     <ClInclude Include="Common\ShareMemory.h" />
     <ClInclude Include="Common\Utility.h" />
     <ClInclude Include="JsonCpp\lib_json\json_tool.h" />
+    <ClInclude Include="Route\RouteClient.h" />
     <ClInclude Include="Route\RouteServer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +95,7 @@
     <ClCompile Include="JsonCpp\lib_json\json_reader.cpp" />
     <ClCompile Include="JsonCpp\lib_json\json_value.cpp" />
     <ClCompile Include="JsonCpp\lib_json\json_writer.cpp" />
+    <ClCompile Include="Route\RouteClient.cpp" />
     <ClCompile Include="Route\RouteServer.cpp" />
   </ItemGroup>
   <ItemGroup>

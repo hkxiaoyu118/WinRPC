@@ -50,6 +50,9 @@
     <ClInclude Include="Common\Utility.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="Route\RouteClient.h">
+      <Filter>Route</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common\ShareMemory.cpp">
@@ -75,6 +78,9 @@
     </ClCompile>
     <ClCompile Include="Common\Utility.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Route\RouteClient.cpp">
+      <Filter>Route</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
