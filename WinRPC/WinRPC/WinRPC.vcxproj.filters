@@ -47,6 +47,9 @@
     <ClInclude Include="Channel\ChannelManager.h">
       <Filter>Channel</Filter>
     </ClInclude>
+    <ClInclude Include="Common\Utility.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common\ShareMemory.cpp">
@@ -69,6 +72,9 @@
     </ClCompile>
     <ClCompile Include="Channel\ChannelManager.cpp">
       <Filter>Channel</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Utility.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

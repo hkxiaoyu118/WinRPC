@@ -1,9 +1,13 @@
 #include "RouteServer.h"
 #include <json/json.h>
 
-RouteServer::RouteServer()
+RouteServer::RouteServer(std::string routeManagerName, std::string serverName, unsigned channelMemSize, unsigned sendDatasMax, unsigned receiveDatasMax)
 {
-
+	m_routeManagerName = routeManagerName;
+	m_serverName = serverName;
+	m_channelMemSize = channelMemSize;
+	m_sendDatasMax = sendDatasMax;
+	m_receiveDatasMax = receiveDatasMax;
 }
 
 RouteServer::~RouteServer()
@@ -88,7 +92,7 @@ bool RouteServer::AddServerRoute(std::string serverName)
 				}
 			}
 		}
-		else//如果存储服务器信息的共享内存中没有数据,则直接填写数据
+		else//如果存储服务器信息的共享内存中没有数据,则直接填写数据 
 		{
 			Json::Value rootValue;
 			Json::Value routeValue;
@@ -110,7 +114,7 @@ bool RouteServer::AddServerRoute(std::string serverName)
 	return result;
 }
 
-bool RouteServer::DelRoute(std::string serverName)
+bool RouteServer::DelServer(std::string serverName)
 {
 	bool result = false;
 	return result;
@@ -162,5 +166,38 @@ bool RouteServer::GetReceivedData(std::vector<MsgNode>& data)
 		m_receiveDatas.pop();
 	}
 	m_receiveDatasMutex.unlock();
+	return result;
+}
+
+bool RouteServer::AddClient(std::string clientName)
+{
+	bool result = false;
+	const std::string channelName = m_serverName + "_" + clientName;
+	//这里建立通道使用了(服务器名称+"_"+客户端名称),为了能够再添加了新的服务器以后,让客户端能够区分
+	MemoryChannel* pChannel = new MemoryChannel(channelName, true, m_channelMemSize, m_sendDatasMax, m_receiveDatasMax);
+	if (pChannel != NULL)
+	{
+		if (pChannel->InitChannel() == NOT_ERROR)
+		{
+			m_clientChannelsMutex.lock();
+			m_clientChannels[clientName] = pChannel;//添加客户端通道
+			m_clientChannelsMutex.unlock();
+			result = true;
+		}
+	}
+	return result;
+}
+bool RouteServer::DelClient(std::string clientName)
+{
+	bool result = false;
+	m_clientChannelsMutex.lock();
+	if (m_clientChannels.find(clientName) != m_clientChannels.end())
+	{
+		MemoryChannel* pChannel = m_clientChannels[clientName];
+		delete pChannel;
+		m_clientChannels.erase(clientName);//删除指定名称的客户端
+		result = true;
+	}
+	m_clientChannelsMutex.unlock();
 	return result;
 }
