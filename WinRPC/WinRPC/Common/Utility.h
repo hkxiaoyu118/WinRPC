@@ -3,6 +3,8 @@
 #include <string>
 #include <windows.h>
 
+typedef void __stdcall FunProcessRecvData(const char* channelName, const char* data, unsigned int dataLength, void* pContext);
+
 //服务端的详细信息
 struct ClientNode
 {

@@ -2,6 +2,7 @@
 #include "../Common/ShareMemory.h"
 #include "../Channel/MemoryChannel.h"
 #include "../Common/Utility.h"
+#include "RouteUtility.h"
 #include <string>
 #include <map>
 #include <mutex>
@@ -23,6 +24,8 @@ public:
 	bool GetReceivedData(std::vector<MsgNode>& data);					//获取客户端发来的所有数据
 	bool AddClient(std::string clientName);								//添加一个新的客户端
 	bool DelClient(std::string clientName);								//删除一个客户端
+
+	static void __stdcall RecvDataCallback(const char* channelName, const char* data, unsigned int dataLength, void* pContext);//接收数据的回调函数
 private:
 	std::string m_routeManagerName;	//路由管理器的名称
 	std::string m_serverName;		//此服务端的名称

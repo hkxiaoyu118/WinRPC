@@ -21,8 +21,8 @@
     <Filter Include="Route">
       <UniqueIdentifier>{af25cada-5df5-4ba3-b55f-033b08237e05}</UniqueIdentifier>
     </Filter>
-    <Filter Include="JsonCpp">
-      <UniqueIdentifier>{4d7ac6a6-e8bb-48d0-b15d-63e2a8d4ff26}</UniqueIdentifier>
+    <Filter Include="TinyXML2">
+      <UniqueIdentifier>{bc8f6c00-3bab-4cd1-baa6-da72d7997503}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -38,9 +38,6 @@
     <ClInclude Include="Channel\MemoryChannel.h">
       <Filter>Channel</Filter>
     </ClInclude>
-    <ClInclude Include="JsonCpp\lib_json\json_tool.h">
-      <Filter>JsonCpp</Filter>
-    </ClInclude>
     <ClInclude Include="Route\RouteServer.h">
       <Filter>Route</Filter>
     </ClInclude>
@@ -53,6 +50,12 @@
     <ClInclude Include="Route\RouteClient.h">
       <Filter>Route</Filter>
     </ClInclude>
+    <ClInclude Include="TinyXML2\tinyxml2.h">
+      <Filter>TinyXML2</Filter>
+    </ClInclude>
+    <ClInclude Include="Route\RouteUtility.h">
+      <Filter>Route</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common\ShareMemory.cpp">
@@ -60,15 +63,6 @@
     </ClCompile>
     <ClCompile Include="Channel\MemoryChannel.cpp">
       <Filter>Channel</Filter>
-    </ClCompile>
-    <ClCompile Include="JsonCpp\lib_json\json_reader.cpp">
-      <Filter>JsonCpp</Filter>
-    </ClCompile>
-    <ClCompile Include="JsonCpp\lib_json\json_value.cpp">
-      <Filter>JsonCpp</Filter>
-    </ClCompile>
-    <ClCompile Include="JsonCpp\lib_json\json_writer.cpp">
-      <Filter>JsonCpp</Filter>
     </ClCompile>
     <ClCompile Include="Route\RouteServer.cpp">
       <Filter>Route</Filter>
@@ -82,13 +76,11 @@
     <ClCompile Include="Route\RouteClient.cpp">
       <Filter>Route</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="JsonCpp\lib_json\json_valueiterator.inl">
-      <Filter>JsonCpp</Filter>
-    </None>
-    <None Include="JsonCpp\lib_json\version.h.in">
-      <Filter>JsonCpp</Filter>
-    </None>
+    <ClCompile Include="TinyXML2\tinyxml2.cpp">
+      <Filter>TinyXML2</Filter>
+    </ClCompile>
+    <ClCompile Include="Route\RouteUtility.cpp">
+      <Filter>Route</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

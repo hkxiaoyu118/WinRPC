@@ -48,7 +48,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>.\JsonCpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -65,7 +65,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>.\JsonCpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -83,24 +83,20 @@
     <ClInclude Include="Common\MyCriticalSection.h" />
     <ClInclude Include="Common\ShareMemory.h" />
     <ClInclude Include="Common\Utility.h" />
-    <ClInclude Include="JsonCpp\lib_json\json_tool.h" />
     <ClInclude Include="Route\RouteClient.h" />
     <ClInclude Include="Route\RouteServer.h" />
+    <ClInclude Include="Route\RouteUtility.h" />
+    <ClInclude Include="TinyXML2\tinyxml2.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Channel\ChannelManager.cpp" />
     <ClCompile Include="Channel\MemoryChannel.cpp" />
     <ClCompile Include="Common\ShareMemory.cpp" />
     <ClCompile Include="Common\Utility.cpp" />
-    <ClCompile Include="JsonCpp\lib_json\json_reader.cpp" />
-    <ClCompile Include="JsonCpp\lib_json\json_value.cpp" />
-    <ClCompile Include="JsonCpp\lib_json\json_writer.cpp" />
     <ClCompile Include="Route\RouteClient.cpp" />
     <ClCompile Include="Route\RouteServer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="JsonCpp\lib_json\json_valueiterator.inl" />
-    <None Include="JsonCpp\lib_json\version.h.in" />
+    <ClCompile Include="Route\RouteUtility.cpp" />
+    <ClCompile Include="TinyXML2\tinyxml2.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

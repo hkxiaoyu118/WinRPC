@@ -1,7 +1,7 @@
 #include "MemoryChannel.h"
 #include <process.h>
 
-MemoryChannel::MemoryChannel(const std::string channelName, bool isServer, DWORD shareMemorySize, unsigned sendMaxSize, unsigned receiveMaxSize)
+MemoryChannel::MemoryChannel(const std::string channelName, bool isServer, DWORD shareMemorySize, unsigned sendMaxSize, unsigned receiveMaxSize, FunProcessRecvData* pFunc, void* pContext)
 {
 	m_hSendThread = NULL;
 	m_hReceiveThread = NULL;
@@ -10,6 +10,8 @@ MemoryChannel::MemoryChannel(const std::string channelName, bool isServer, DWORD
 	m_isServer = isServer;
 	m_sendMaxSize = sendMaxSize;
 	m_receiveMaxSize = receiveMaxSize;
+	m_pRecvDataFunc = pFunc;
+	m_pContext = pContext;
 	InitializeCriticalSection(&m_dataCs);
 	InitializeCriticalSection(&m_sendCs);
 }
@@ -209,7 +211,16 @@ unsigned  __stdcall MemoryChannel::ReceiveDataThread(LPVOID args)
 			std::string receiveData;
 			receiveData.resize(p->m_shareMemorySize);
 			pShareMem->ReadShareMem(pShareMemAddr, (void*)receiveData.c_str(), p->m_shareMemorySize);
-			p->StoreReceiveData(receiveData);
+
+			if (p->m_pRecvDataFunc != NULL && p->m_pContext != NULL)//如果设置了回调函数接收数据,则优先使用回调函数传出数据
+			{
+				p->m_pRecvDataFunc(p->m_channelName.c_str(), receiveData.c_str(), receiveData.length(), p->m_pContext);//将接收到的数据通过回调函数传出
+			}
+			else
+			{
+				p->StoreReceiveData(receiveData);
+			}
+			
 #ifdef _DEBUG
 			printf("%s\n", receiveData.c_str());
 #endif // _DEBUG

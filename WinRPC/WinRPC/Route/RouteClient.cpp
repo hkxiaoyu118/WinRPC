@@ -1,8 +1,9 @@
 #include "RouteClient.h"
 
-RouteClient::RouteClient(std::string routeManagerName, unsigned channelMemSize, unsigned sendDatasMax, unsigned receiveDatasMax)
+RouteClient::RouteClient(std::string routeManagerName, std::string clientName, unsigned channelMemSize, unsigned sendDatasMax, unsigned receiveDatasMax)
 {
 	m_routeManagerName = routeManagerName;
+	m_clientName = clientName;
 	m_channelMemSize = channelMemSize;
 	m_sendDatasMax = sendDatasMax;
 	m_receiveDatasMax = receiveDatasMax;
@@ -20,7 +21,7 @@ bool RouteClient::InitRouteClient()
 	std::string routeServerNoticeEventName = "ROUTE_SERVER_NOTICE_" + m_routeManagerName + "_WINRPC";
 	m_hServerNoticeEvent = CreateEventA(NULL, FALSE, FALSE, routeServerNoticeEventName.c_str());
 	std::string routeServerMutexName = "ROUTE_SERVER_MUTEX_" + m_routeManagerName + "_WINRPC";
-	m_hServerMutex = CreateMutexA(NULL, TRUE, routeServerMutexName.c_str());
+	m_hServerMutex = CreateMutexA(NULL, FALSE, routeServerMutexName.c_str());
 	std::string routeServerMemName = "Global\\ROUTE_SERVER_SHARE_" + m_routeManagerName + "_WINRPC";
 	m_serverTableMem = new ShareMemory(routeServerMemName);
 
@@ -37,36 +38,16 @@ bool RouteClient::InitRouteClient()
 				m_serverTableMem->ReadShareMem(m_serverMemAddr, (void*)serverData.c_str(), 4096);
 				ReleaseMutex(m_hServerMutex);//读取完共享内存以后,释放锁
 
-				if (serverData.empty() == false)//如果存储服务器信息的共享内存中有数据,则先读取原有的数据
+				std::vector<ServerNode> serverNodes;
+				ReadShareMemServerInfo(serverData, serverNodes);
+				for (auto iter = serverNodes.begin(); iter != serverNodes.end(); iter++)
 				{
-					Json::Value rootValue;
-					Json::Reader reader;
-					if (reader.parse(serverData, rootValue) == true)
-					{
-						if (rootValue["servers"].isArray())
-						{
-							for (int i = 0; i < rootValue["servers"].size(); i++)
-							{
-								Json::Value serverValue = rootValue["servers"][i];
-								ServerNode serverNode;
-								serverNode.serverName = serverValue["server_name"].asString();
-								serverNode.pid = serverValue["pid"].asUInt();
-								m_serverNodes[serverNode.serverName] = serverNode;
-							}
-
-							if (m_serverNodes.size() != 0)
-							{
-								for (auto iter = m_serverNodes.begin(); iter != m_serverNodes.end(); iter++)
-								{
-									std::string serverName = iter->first;
-									AddServer(serverName);
-								}
-							}
-
-							result = true;
-						}
-					}
+					ServerNode serverNode = *iter;
+					std::string serverName = serverNode.serverName;
+					AddServer(serverName);
 				}
+
+				result = true;
 			}
 		}
 	}
@@ -79,6 +60,7 @@ bool RouteClient::AddServer(std::string serverName)
 	const std::string channelName = serverName + "_" + m_clientName;
 	//这里建立通道使用了(服务器名称+"_"+客户端名称),为了能够再添加了新的服务器以后,让客户端能够区分
 	MemoryChannel* pChannel = new MemoryChannel(channelName, false , m_channelMemSize, m_sendDatasMax, m_receiveDatasMax);
+	;
 	if (pChannel != NULL)
 	{
 		if (pChannel->InitChannel() == NOT_ERROR)
@@ -89,6 +71,19 @@ bool RouteClient::AddServer(std::string serverName)
 			result = true;
 		}
 	}
+	return result;
+}
+
+bool RouteClient::IsServerExist(std::string serverName)
+{
+	bool result = false;
+	const std::string channelName = serverName + "_" + m_clientName;
+	m_serverChannelsMutex.lock();
+	if (m_serverChannels.find(channelName) != m_serverChannels.end())
+	{
+		result = true;
+	}
+	m_serverChannelsMutex.unlock();
 	return result;
 }
 
@@ -119,8 +114,40 @@ void RouteClient::SendData(std::string serverName, std::string data)
 	m_serverChannelsMutex.unlock();
 }
 
-bool GetReceivedDatas(std::vector<MsgNode>& datas)
+bool RouteClient::GetReceivedDatas(std::vector<MsgNode>& datas)
 {
 	bool result = false;
 	return result;
+}
+
+unsigned __stdcall RouteClient::ServerInfoMonitorThread(LPVOID args)
+{
+	RouteClient* p = (RouteClient*)args;
+	while (true)
+	{
+		if (WaitForSingleObject(p->m_hServerNoticeEvent, 5000) == WAIT_OBJECT_0)
+		{
+			std::map<std::string, ServerNode> serverNodes;
+			if (WaitForSingleObject(p->m_hServerMutex, INFINITE) == WAIT_OBJECT_0)
+			{
+				std::string serverData;
+				serverData.resize(4096);
+				p->m_serverTableMem->ReadShareMem(p->m_serverMemAddr, (void*)serverData.c_str(), 4096);
+				ReleaseMutex(p->m_hServerMutex);//及时释放锁
+
+				std::vector<ServerNode> serverNodes;
+				ReadShareMemServerInfo(serverData, serverNodes);
+				for (auto iter = serverNodes.begin(); iter != serverNodes.end(); iter++)
+				{
+					ServerNode serverNode = *iter;
+					std::string serverName = serverNode.serverName;
+					if (p->IsServerExist(serverName) == false) //判断,如果服务器资源已经创建过了,则不再进行资源创建
+					{
+						p->AddServer(serverName);
+					}
+				}
+			}
+		}
+	}
+	return 0;
 }

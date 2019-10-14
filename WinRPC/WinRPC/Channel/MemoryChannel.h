@@ -5,6 +5,7 @@
 #include <windows.h>
 #include "../Common/ShareMemory.h"
 #include "../Common/MyCriticalSection.h"
+#include "../Common/Utility.h"
 
 /*
 	内存channel
@@ -21,7 +22,7 @@ enum CHANNEL_ERROR
 class MemoryChannel
 {
 public:
-	MemoryChannel(const std::string channelName, bool isServer = false, DWORD shareMemorySize = 1024 * 4, unsigned sendMaxSize = 100, unsigned receiveMaxSize = 100);
+	MemoryChannel(const std::string channelName, bool isServer = false, DWORD shareMemorySize = 1024 * 4, unsigned sendMaxSize = 100, unsigned receiveMaxSize = 100, FunProcessRecvData* pFunc = NULL, void* pContext = NULL);
 	~MemoryChannel();
 	CHANNEL_ERROR InitChannel();
 	void StoreSendData(std::string data);
@@ -55,4 +56,7 @@ private:
 	bool m_threadWorking;				//判断线程是否工作
 	HANDLE m_hSendThread;				//发消息线程句柄
 	HANDLE m_hReceiveThread;			//收消息线程句柄
+
+	FunProcessRecvData* m_pRecvDataFunc;//接收数据的回调函数
+	void* m_pContext;					//回调函数使用的指针
 };
