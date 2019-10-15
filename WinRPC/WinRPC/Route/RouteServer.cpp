@@ -7,10 +7,18 @@ RouteServer::RouteServer(std::string routeManagerName, std::string serverName, u
 	m_channelMemSize = channelMemSize;
 	m_sendDatasMax = sendDatasMax;
 	m_receiveDatasMax = receiveDatasMax;
+	m_sendDataThreadRunning = true;
 }
 
 RouteServer::~RouteServer()
 {
+	if (m_hSendDataThread != NULL)
+	{
+		m_sendDataThreadRunning = false;//结束线程
+		WaitForSingleObject(m_hSendDataThread, 5000);
+		CloseHandle(m_hSendDataThread);
+	}
+
 	if (m_hServerNoticeEvent != NULL)
 	{
 		CloseHandle(m_hServerNoticeEvent);
@@ -42,7 +50,8 @@ bool RouteServer::InitRouteManager()
 	if (m_serverTableMem != NULL)
 	{
 		m_serverMemAddr = m_serverTableMem->OpenShareMem(NULL, 4096);
-		if (m_serverMemAddr != NULL)
+		m_hSendDataThread = (HANDLE)_beginthreadex(NULL, 0, SendDataThread, (LPVOID)this, 0, NULL);
+		if (m_serverMemAddr != NULL && m_hSendDataThread != NULL)
 		{
 			result = AddServerRoute(m_serverName);
 			if (result == true)//如果更新服务器表成功,通知所有客户端,也及时更新服务器表
@@ -58,7 +67,8 @@ bool RouteServer::InitRouteManager()
 bool RouteServer::AddServerRoute(std::string serverName)
 {
 	bool result = false;
-	if (WaitForSingleObject(m_hServerMutex, INFINITE) == WAIT_OBJECT_0)
+	DWORD waitResult = WaitForSingleObject(m_hServerMutex, INFINITE);
+	if (waitResult == WAIT_OBJECT_0 || waitResult == STATUS_ABANDONED_WAIT_0)
 	{
 		std::string oldRouteData;	//旧的服务器信息
 		std::string newRouteData;	//新的服务器信息
@@ -138,14 +148,19 @@ bool RouteServer::SendData(std::string clientName, std::string data)
 	return true;
 }
 
-bool RouteServer::GetSendData(MsgNode& data)
+bool RouteServer::GetSendData(std::queue<MsgNode>& data)
 {
 	bool result = false;
 	m_sendDatasMutex.lock();
 	if (m_sendDatas.size() != 0)
 	{
-		data = m_sendDatas.front();
-		m_sendDatas.pop();
+		//将发送队列数据复制给调用者
+		data = m_sendDatas;
+		//清空发送队列
+		while (m_sendDatas.empty() == false)
+		{
+			m_sendDatas.pop();
+		}
 		result = true;
 	}
 	m_sendDatasMutex.unlock();
@@ -219,6 +234,17 @@ bool RouteServer::DelClient(std::string clientName)
 	return result;
 }
 
+void RouteServer::SendDataToChannel(const MsgNode& msgNode)
+{
+	m_clientChannelsMutex.lock();
+	if (m_clientChannels.find(msgNode.clientOrServerName) != m_clientChannels.end())
+	{
+		MemoryChannel* p = m_clientChannels[msgNode.clientOrServerName];
+		p->StoreSendData(msgNode.data);
+	}
+	m_clientChannelsMutex.unlock();
+}
+
 void RouteServer::RecvDataCallback(const char* channelName, const char* data, unsigned int dataLength, void* pContext)
 {
 	RouteServer* p = (RouteServer*)pContext;
@@ -237,4 +263,31 @@ void RouteServer::RecvDataCallback(const char* channelName, const char* data, un
 			}
 		}
 	}
+}
+
+unsigned __stdcall RouteServer::SendDataThread(LPVOID args)
+{
+	RouteServer* p = (RouteServer*)args;
+
+	while (true)
+	{
+		std::queue<MsgNode> msgNodeQueue;
+		if (p->GetSendData(msgNodeQueue) == true)
+		{
+			while (msgNodeQueue.empty() == false)
+			{
+				MsgNode msgNode = msgNodeQueue.front();
+				msgNodeQueue.pop();
+				p->SendDataToChannel(msgNode);
+			}
+		}
+
+		//发现结束信号,结束线程
+		if (p->m_sendDataThreadRunning == false)
+		{
+			break;
+		}
+		Sleep(50);
+	}
+	return 0;
 }

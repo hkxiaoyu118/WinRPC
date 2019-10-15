@@ -49,7 +49,8 @@ void RouteClientTest()
 	while (true)
 	{
 		std::string data = "this is a client msg:" + std::to_string(count);
-		routeClient.SendData("hkxiaoyu", data);
+		//routeClient.SendData("hkxiaoyu", data);
+		routeClient.BroadcastData(data);
 		count++;
 		Sleep(20);
 	}

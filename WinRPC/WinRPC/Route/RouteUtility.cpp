@@ -26,7 +26,7 @@ bool ReadShareMemServerInfo(std::string shareMemStr, std::vector<ServerNode>& se
 			if (serversElement != NULL)
 			{
 				tinyxml2::XMLElement* serverElement = NULL;
-				for (serverElement = serversElement->FirstChildElement(); serverElement != NULL; serverElement = serversElement->NextSiblingElement())
+				for (serverElement = serversElement->FirstChildElement(); serverElement != NULL; serverElement = serverElement->NextSiblingElement())
 				{
 					const char* szServerName = serverElement->Attribute("name");
 					unsigned int pid = serverElement->UnsignedAttribute("pid");

@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <mutex>
+#include <process.h>
 #include "../Common/Utility.h"
 #include "../Common/ShareMemory.h"
 #include "../Channel/MemoryChannel.h"
@@ -38,4 +39,6 @@ private:
 
 	std::map<std::string, MemoryChannel*> m_serverChannels;	//服务器通道
 	std::mutex m_serverChannelsMutex;						//服务器通道锁
+	HANDLE m_hServerInfoMonitorThread;						//服务器信息监视线程句柄
+	bool m_serverInfoMonitorThRunning;						//服务器信息监视线程是否运行
 };

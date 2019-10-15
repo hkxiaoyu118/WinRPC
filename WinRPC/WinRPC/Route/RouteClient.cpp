@@ -7,11 +7,17 @@ RouteClient::RouteClient(std::string routeManagerName, std::string clientName, u
 	m_channelMemSize = channelMemSize;
 	m_sendDatasMax = sendDatasMax;
 	m_receiveDatasMax = receiveDatasMax;
+	m_serverInfoMonitorThRunning = true;
 }
 
 RouteClient::~RouteClient()
 {
-
+	if (m_hServerInfoMonitorThread != NULL)
+	{
+		m_serverInfoMonitorThRunning = false;
+		WaitForSingleObject(m_hServerInfoMonitorThread, 5000);
+		CloseHandle(m_hServerInfoMonitorThread);
+	}
 }
 
 bool RouteClient::InitRouteClient()
@@ -28,12 +34,14 @@ bool RouteClient::InitRouteClient()
 	if (m_serverTableMem != NULL)
 	{
 		m_serverMemAddr = m_serverTableMem->OpenShareMem(NULL, 4096);
-		if (m_serverMemAddr != NULL)
+		m_hServerInfoMonitorThread = (HANDLE)_beginthreadex(NULL, 0, ServerInfoMonitorThread, (LPVOID)this, 0, NULL);
+		if (m_serverMemAddr != NULL && m_hServerInfoMonitorThread != NULL)
 		{
 			//获取共享内存中的服务器列表
 			std::string serverData;	//共享内存中存储的服务器信息
 			serverData.resize(4096);
-			if (WaitForSingleObject(m_hServerMutex, INFINITE) == WAIT_OBJECT_0)
+			DWORD waitResult = WaitForSingleObject(m_hServerMutex, INFINITE);
+			if (waitResult == WAIT_OBJECT_0 || waitResult == STATUS_ABANDONED_WAIT_0)
 			{
 				m_serverTableMem->ReadShareMem(m_serverMemAddr, (void*)serverData.c_str(), 4096);
 				ReleaseMutex(m_hServerMutex);//读取完共享内存以后,释放锁
@@ -57,33 +65,34 @@ bool RouteClient::InitRouteClient()
 bool RouteClient::AddServer(std::string serverName)
 {
 	bool result = false;
-	const std::string channelName = serverName + "_" + m_clientName;
-	//这里建立通道使用了(服务器名称+"_"+客户端名称),为了能够再添加了新的服务器以后,让客户端能够区分
-	MemoryChannel* pChannel = new MemoryChannel(channelName, false , m_channelMemSize, m_sendDatasMax, m_receiveDatasMax);
-	;
-	if (pChannel != NULL)
+	m_serverChannelsMutex.lock();
+	//判断是否已经存在该服务器,如果没有该服务器,则添加该服务器
+	if (IsServerExist(serverName) == false)
 	{
-		if (pChannel->InitChannel() == NOT_ERROR)
+		const std::string channelName = serverName + "_" + m_clientName;
+		//这里建立通道使用了(服务器名称+"_"+客户端名称),为了能够再添加了新的服务器以后,让客户端能够区分
+		MemoryChannel* pChannel = new MemoryChannel(channelName, false, m_channelMemSize, m_sendDatasMax, m_receiveDatasMax);
+
+		if (pChannel != NULL)
 		{
-			m_serverChannelsMutex.lock();
-			m_serverChannels[serverName] = pChannel;//添加客户端通道
-			m_serverChannelsMutex.unlock();
-			result = true;
+			if (pChannel->InitChannel() == NOT_ERROR)
+			{
+				m_serverChannels[serverName] = pChannel;//添加客户端通道	
+				result = true;
+			}
 		}
 	}
+	m_serverChannelsMutex.unlock();
 	return result;
 }
 
 bool RouteClient::IsServerExist(std::string serverName)
 {
 	bool result = false;
-	const std::string channelName = serverName + "_" + m_clientName;
-	m_serverChannelsMutex.lock();
-	if (m_serverChannels.find(channelName) != m_serverChannels.end())
+	if (m_serverChannels.find(serverName) != m_serverChannels.end())
 	{
 		result = true;
 	}
-	m_serverChannelsMutex.unlock();
 	return result;
 }
 
@@ -141,10 +150,7 @@ unsigned __stdcall RouteClient::ServerInfoMonitorThread(LPVOID args)
 				{
 					ServerNode serverNode = *iter;
 					std::string serverName = serverNode.serverName;
-					if (p->IsServerExist(serverName) == false) //判断,如果服务器资源已经创建过了,则不再进行资源创建
-					{
-						p->AddServer(serverName);
-					}
+					p->AddServer(serverName);
 				}
 			}
 		}
