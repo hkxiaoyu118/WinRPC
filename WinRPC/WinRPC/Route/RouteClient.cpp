@@ -18,6 +18,28 @@ RouteClient::~RouteClient()
 		WaitForSingleObject(m_hServerInfoMonitorThread, 5000);
 		CloseHandle(m_hServerInfoMonitorThread);
 	}
+
+	if (m_hServerNoticeEvent != NULL)
+	{
+		CloseHandle(m_hServerNoticeEvent);
+	}
+
+	if (m_hServerMutex != NULL)
+	{
+		CloseHandle(m_hServerMutex);
+	}
+
+	if (m_serverTableMem != NULL)
+	{
+		delete m_serverTableMem;
+	}
+
+	//析构所有的通道
+	for (auto iter = m_serverChannels.begin(); iter != m_serverChannels.end(); iter++)
+	{
+		MemoryChannel* p = iter->second;
+		delete p;
+	}
 }
 
 bool RouteClient::InitRouteClient()
