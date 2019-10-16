@@ -93,7 +93,7 @@ bool RouteClient::AddServer(std::string serverName)
 	{
 		const std::string channelName = serverName + "_" + m_clientName;
 		//这里建立通道使用了(服务器名称+"_"+客户端名称),为了能够再添加了新的服务器以后,让客户端能够区分
-		MemoryChannel* pChannel = new MemoryChannel(channelName, false, m_channelMemSize, m_sendDatasMax, m_receiveDatasMax);
+		MemoryChannel* pChannel = new MemoryChannel(channelName, false, m_channelMemSize, m_sendDatasMax, m_receiveDatasMax, RecvDataCallback, this);
 
 		if (pChannel != NULL)
 		{
@@ -145,10 +145,33 @@ void RouteClient::SendData(std::string serverName, std::string data)
 	m_serverChannelsMutex.unlock();
 }
 
-bool RouteClient::GetReceivedDatas(std::vector<MsgNode>& datas)
+void RouteClient::GetReceivedDatas(std::vector<MsgNode>& datas)
 {
-	bool result = false;
-	return result;
+	m_receiveDatasMutex.lock();
+	while (m_receiveDatasQueue.empty() == false)
+	{
+		datas.push_back(m_receiveDatasQueue.front());
+		m_receiveDatasQueue.pop();
+	}
+	m_receiveDatasMutex.unlock();
+}
+
+void RouteClient::StoreReceivedData(std::string serverName, std::string data)
+{
+	MsgNode msg;
+	msg.clientOrServerName = serverName;
+	msg.data = data;
+	m_receiveDatasMutex.lock();
+	if (m_receiveDatasQueue.size() >= m_receiveDatasMax)
+	{
+		m_receiveDatasQueue.pop();
+		m_receiveDatasQueue.push(msg);
+	}
+	else
+	{
+		m_receiveDatasQueue.push(msg);
+	}
+	m_receiveDatasMutex.unlock();
 }
 
 unsigned __stdcall RouteClient::ServerInfoMonitorThread(LPVOID args)
@@ -178,4 +201,27 @@ unsigned __stdcall RouteClient::ServerInfoMonitorThread(LPVOID args)
 		}
 	}
 	return 0;
+}
+
+void __stdcall RouteClient::RecvDataCallback(const char* channelName, const char* data, unsigned int dataLength, void* pContext)
+{
+	RouteClient* p = (RouteClient*)pContext;
+	if (p != NULL)
+	{
+		if (channelName != NULL && data != NULL)
+		{
+			std::string binData;
+			binData.resize(dataLength);
+			memcpy((char*)binData.c_str(), data, dataLength);
+
+			std::vector<std::string> clientArray = StrSplit(channelName, "_");
+			if (clientArray.size() == 2)
+			{
+				p->StoreReceivedData(clientArray[0], binData);
+#if _DEBUG
+				printf("%s:%s\n", clientArray[0].c_str(), binData.c_str());
+#endif
+			}
+		}
+	}
 }

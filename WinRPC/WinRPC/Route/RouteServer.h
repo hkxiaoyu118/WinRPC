@@ -21,8 +21,8 @@ public:
 	bool DelServer(std::string serverName);								//删除服务器
 	bool SendData(std::string clientName, std::string data);			//向客户端发送数据(如果clientName为空,则向所有的客户端发送数据)
 	bool GetSendData(std::queue<MsgNode>& data);						//从队列中,一次性取出所有将要发送的数据
-	bool StoreReceivedData(std::string clientName, std::string data);	//存储从客户端收到的数据
-	bool GetReceivedData(std::vector<MsgNode>& data);					//获取客户端发来的所有数据
+	void StoreReceivedData(std::string clientName, std::string data);	//存储从客户端收到的数据
+	void GetReceivedData(std::vector<MsgNode>& data);					//获取客户端发来的所有数据
 	bool AddClient(std::string clientName);								//添加一个新的客户端
 	bool DelClient(std::string clientName);								//删除一个客户端
 	void SendDataToChannel(const MsgNode& msgNode);						//向管道发送数据

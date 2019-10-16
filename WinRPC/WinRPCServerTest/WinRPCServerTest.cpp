@@ -34,7 +34,7 @@ void ChannelManagerTest()
 void RouteServerTest()
 {
 	std::string routeName = "hkxiaoyu118";
-	std::string serverName = "zhangshasha";
+	std::string serverName = "hahahah";
 	RouteServer routeServer(routeName, serverName);
 	if (routeServer.InitRouteManager() == true)
 	{

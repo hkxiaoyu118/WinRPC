@@ -38,7 +38,6 @@ RouteServer::~RouteServer()
 bool RouteServer::InitRouteManager()
 {
 	bool result = false;
-
 	//Server相关的初始化
 	std::string routeServerNoticeEventName = "ROUTE_SERVER_NOTICE_" + m_routeManagerName + "_WINRPC";
 	m_hServerNoticeEvent = CreateEventA(NULL, FALSE, FALSE, routeServerNoticeEventName.c_str());
@@ -60,7 +59,6 @@ bool RouteServer::InitRouteManager()
 			}
 		}
 	}
-
 	return result;
 }
 
@@ -167,7 +165,7 @@ bool RouteServer::GetSendData(std::queue<MsgNode>& data)
 	return result;
 }
 
-bool RouteServer::StoreReceivedData(std::string clientName, std::string data)
+void RouteServer::StoreReceivedData(std::string clientName, std::string data)
 {
 	MsgNode msg;
 	msg.clientOrServerName = clientName;
@@ -183,10 +181,9 @@ bool RouteServer::StoreReceivedData(std::string clientName, std::string data)
 		m_receiveDatas.push(msg);
 	}
 	m_receiveDatasMutex.unlock();
-	return true;
 }
 
-bool RouteServer::GetReceivedData(std::vector<MsgNode>& data)
+void RouteServer::GetReceivedData(std::vector<MsgNode>& data)
 {
 	bool result = false;
 	m_receiveDatasMutex.lock();
@@ -196,7 +193,6 @@ bool RouteServer::GetReceivedData(std::vector<MsgNode>& data)
 		m_receiveDatas.pop();
 	}
 	m_receiveDatasMutex.unlock();
-	return result;
 }
 
 bool RouteServer::AddClient(std::string clientName)
@@ -260,6 +256,9 @@ void RouteServer::RecvDataCallback(const char* channelName, const char* data, un
 			if (clientArray.size() == 2)
 			{
 				p->StoreReceivedData(clientArray[1], binData);
+#if _DEBUG
+				printf("%s:%s\n", clientArray[1].c_str(), binData.c_str());
+#endif
 			}
 		}
 	}

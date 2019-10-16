@@ -222,7 +222,7 @@ unsigned  __stdcall MemoryChannel::ReceiveDataThread(LPVOID args)
 			}
 			
 #ifdef _DEBUG
-			printf("%s\n", receiveData.c_str());
+			//printf("%s\n", receiveData.c_str());
 #endif // _DEBUG
 			ResetEvent(hEventRead);//数据存储已经完成,通知写入端可以写入了
 		}

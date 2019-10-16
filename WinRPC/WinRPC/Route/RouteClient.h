@@ -20,8 +20,10 @@ public:
 	bool IsServerExist(std::string serverName);//判断服务端是否已经存在
 	void BroadcastData(std::string data);	//向服务区发送数据(广播方式)
 	void SendData(std::string serverName, std::string data);//向服务器发送数据(定向发送)
-	bool GetReceivedDatas(std::vector<MsgNode>& datas);//获取接收的数据(所有)
+	void GetReceivedDatas(std::vector<MsgNode>& datas);//获取接收的数据(所有)
+	void StoreReceivedData(std::string serverName, std::string data);//存储从服务器收到的数据
 	static unsigned __stdcall ServerInfoMonitorThread(LPVOID args);//监视服务器信息的线程
+	static void __stdcall RecvDataCallback(const char* channelName, const char* data, unsigned int dataLength, void* pContext);//接收数据的回调函数
 private:
 	std::string m_routeManagerName;	//路由管理器的名称
 	std::string m_clientName;		//本客户端的名称
