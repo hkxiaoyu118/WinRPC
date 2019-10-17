@@ -76,11 +76,29 @@ bool RouteServer::AddServerRoute(std::string serverName)
 		//生成新的服务器内容
 		std::vector<ServerNode> serverNodes;
 		ReadShareMemServerInfo(oldRouteData, serverNodes);
-		ServerNode serverNode;
-		serverNode.serverName = serverName;
-		serverNode.pid = (unsigned)GetCurrentProcessId();
-		serverNodes.push_back(serverNode);
-		newRouteData = CreateShareMemServerInfo(serverNodes);
+
+		//判断共享内存中的服务器列表,是否已经有该服务器的记录
+		//如果没有则添加此服务端记录
+		//如果有则不添加此服务端记录
+		bool findResult = false;
+		for (auto iter = serverNodes.begin(); iter != serverNodes.end(); iter++)
+		{
+			ServerNode serverItemNode = *iter;
+			if (serverItemNode.serverName == serverName) //找到服务端的记录
+			{
+				findResult = true;
+				break;
+			}
+		}
+
+		if (findResult == false)
+		{
+			ServerNode serverNode;
+			serverNode.serverName = serverName;
+			serverNode.pid = (unsigned)GetCurrentProcessId();
+			serverNodes.push_back(serverNode);
+			newRouteData = CreateShareMemServerInfo(serverNodes);
+		}
 
 		if (newRouteData.empty() == false)
 		{
@@ -198,20 +216,24 @@ void RouteServer::GetReceivedData(std::vector<MsgNode>& data)
 bool RouteServer::AddClient(std::string clientName)
 {
 	bool result = false;
-	const std::string channelName = m_serverName + "_" + clientName;
-	//这里建立通道使用了(服务器名称+"_"+客户端名称),为了能够再添加了新的服务器以后,让客户端能够区分
-	//以回调函数的方式进行接收客户端发来的数据
-	MemoryChannel* pChannel = new MemoryChannel(channelName, true, m_channelMemSize, m_sendDatasMax, m_receiveDatasMax, RecvDataCallback, this);
-	if (pChannel != NULL)
+	m_clientChannelsMutex.lock();
+	//首先判断是否已经存在该客户端,如果没有该客户端则继续添加该客户端
+	if (m_clientChannels.find(clientName) == m_clientChannels.end())
 	{
-		if (pChannel->InitChannel() == NOT_ERROR)
+		const std::string channelName = m_serverName + "_" + clientName;
+		//这里建立通道使用了(服务器名称+"_"+客户端名称),为了能够再添加了新的服务器以后,让客户端能够区分
+		//以回调函数的方式进行接收客户端发来的数据
+		MemoryChannel* pChannel = new MemoryChannel(channelName, true, m_channelMemSize, m_sendDatasMax, m_receiveDatasMax, RecvDataCallback, this);
+		if (pChannel != NULL)
 		{
-			m_clientChannelsMutex.lock();
-			m_clientChannels[clientName] = pChannel;//添加客户端通道
-			m_clientChannelsMutex.unlock();
-			result = true;
+			if (pChannel->InitChannel() == NOT_ERROR)
+			{
+				m_clientChannels[clientName] = pChannel;//添加客户端通道
+				result = true;
+			}
 		}
 	}
+	m_clientChannelsMutex.unlock();
 	return result;
 }
 

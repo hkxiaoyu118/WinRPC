@@ -35,11 +35,13 @@ RouteClient::~RouteClient()
 	}
 
 	//析构所有的通道
+	m_serverChannelsMutex.lock();
 	for (auto iter = m_serverChannels.begin(); iter != m_serverChannels.end(); iter++)
 	{
 		MemoryChannel* p = iter->second;
 		delete p;
 	}
+	m_serverChannelsMutex.unlock();
 }
 
 bool RouteClient::InitRouteClient()
@@ -199,6 +201,11 @@ unsigned __stdcall RouteClient::ServerInfoMonitorThread(LPVOID args)
 				}
 			}
 		}
+		//检测线程是否可以继续运行
+		if (p->m_serverInfoMonitorThRunning == false)
+		{
+			break;
+		}
 	}
 	return 0;
 }
@@ -208,7 +215,7 @@ void __stdcall RouteClient::RecvDataCallback(const char* channelName, const char
 	RouteClient* p = (RouteClient*)pContext;
 	if (p != NULL)
 	{
-		if (channelName != NULL && data != NULL)
+		if (channelName != NULL && data != NULL && dataLength != 0)
 		{
 			std::string binData;
 			binData.resize(dataLength);
